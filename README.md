@@ -77,10 +77,20 @@ pip install -r requirements.txt
 3. Run the Clinical App
 bash
 streamlit run app.py
-👨‍💻 Author
-Sahil Bisla
+## 👨‍💻 Author
 
-B.Tech CSE (AI Specialization) @ Bennett University
-🔗 LinkedIn
-🐙 GitHub Profile
-✉️ sahilbisla16@gmail.com
+**Sahil Bisla**  
+*B.Tech CSE (AI Specialization) @ Bennett University*
+
+<p align="left">
+  <a href="https://www.linkedin.com/in/sahil-bisla/" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a>
+  <a href="https://github.com/sahilbisla01" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+  <a href="mailto:sahilbisla16@gmail.com">
+    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" />
+  </a>
+</p>
+
