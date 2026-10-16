@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Raw dataset (thousands of individual patient PSV files)
+data/raw/
+
+# Large training / intermediate processed datasets (>100MB, cannot be committed to standard git)
+data/processed/train_final.parquet
+data/processed/val_final.parquet
+data/processed/sepsis_cleaned_final.parquet
+data/processed/sepsis_raw_combined.parquet
+
+# Environment variables & local secrets
+.env
+.streamlit/secrets.toml

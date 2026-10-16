@@ -1,0 +1,17 @@
+{
+  "test_1_confident_alert": {
+    "risk": 0.3647719621658325,
+    "action": "ALERT",
+    "evidence_count": 3
+  },
+  "test_2_low_risk_monitor": {
+    "risk": 0.17152900993824005,
+    "action": "MONITOR",
+    "evidence_count": 0
+  },
+  "test_3_uncertain_extra_evidence": {
+    "risk": 0.49971121549606323,
+    "action": "ALERT_WITH_EXTRA_EVIDENCE",
+    "evidence_count": 5
+  }
+}

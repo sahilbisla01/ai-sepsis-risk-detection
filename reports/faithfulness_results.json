@@ -1,0 +1,19 @@
+{
+  "generic_claims_test": {
+    "avg_confidence": 0.8,
+    "labels": [
+      "NEUTRAL",
+      "NEUTRAL",
+      "NEUTRAL"
+    ]
+  },
+  "specific_claims_test": {
+    "avg_confidence": 0.9700000000000001,
+    "labels": [
+      "ENTAILMENT",
+      "ENTAILMENT",
+      "ENTAILMENT"
+    ]
+  },
+  "conclusion": "Specific, feature-grounded explanations achieve high faithfulness (avg 97%), while generic claims do not - informing our explanation generation design"
+}
