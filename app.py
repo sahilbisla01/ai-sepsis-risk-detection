@@ -179,24 +179,37 @@ def load_components():
 
 xgb_model, rag_index, guideline_documents, embedder = load_components()
 
-# Load Reference Data
-test_df = pd.read_parquet("data/processed/test_final.parquet")
-exclude_cols = ["patient_id", "SepsisLabel"]
-feature_cols = [c for c in test_df.columns if c not in exclude_cols]
-median_row = test_df[feature_cols].median()
-measured_cols = [c for c in feature_cols if c.endswith("_measured")]
+# Limit PyTorch CPU threads to conserve memory on cloud containers
+import torch
+import gc
+torch.set_num_threads(1)
 
 # ---------------------------------------------------------------
-# Score Distribution Reference
+# Load Reference Data & Score Distribution (Optimized for Memory)
 # ---------------------------------------------------------------
-@st.cache_resource
-def compute_score_reference():
-    probs = xgb_model.predict_proba(test_df[feature_cols])[:, 1]
-    return np.sort(probs)
+@st.cache_resource(show_spinner=False)
+def load_reference_distribution():
+    # Read test set to extract feature columns & medians
+    df = pd.read_parquet("data/processed/test_final.parquet")
+    exclude_cols = ["patient_id", "SepsisLabel"]
+    f_cols = [c for c in df.columns if c not in exclude_cols]
+    m_row = df[f_cols].median().astype("float32")
+    m_cols = [c for c in f_cols if c.endswith("_measured")]
 
-sorted_probs = compute_score_reference()
-p75 = float(np.percentile(sorted_probs, 75))   # Moderate threshold
-p95 = float(np.percentile(sorted_probs, 95))   # High threshold
+    # Sample 1,500 records to compute calibration percentiles with minimal RAM
+    sample_df = df[f_cols].sample(n=min(1500, len(df)), random_state=42)
+    probs = xgb_model.predict_proba(sample_df)[:, 1]
+    s_probs = np.sort(probs)
+
+    # Immediately release the large dataset from memory
+    del df, sample_df
+    gc.collect()
+
+    val_p75 = float(np.percentile(s_probs, 75))   # Moderate threshold
+    val_p95 = float(np.percentile(s_probs, 95))   # High threshold
+    return f_cols, m_row, m_cols, s_probs, val_p75, val_p95
+
+feature_cols, median_row, measured_cols, sorted_probs, p75, p95 = load_reference_distribution()
 
 def percentile_rank(score):
     return 100.0 * np.searchsorted(sorted_probs, score) / len(sorted_probs)
