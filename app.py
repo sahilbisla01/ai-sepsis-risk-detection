@@ -193,7 +193,7 @@ def load_reference_distribution():
     df = pd.read_parquet("data/processed/test_final.parquet")
     exclude_cols = ["patient_id", "SepsisLabel"]
     f_cols = [c for c in df.columns if c not in exclude_cols]
-    m_row = df[f_cols].median().astype("float32")
+    m_dict = {c: float(v) for c, v in df[f_cols].median().items()}
     m_cols = [c for c in f_cols if c.endswith("_measured")]
 
     # Sample 1,500 records to compute calibration percentiles with minimal RAM
@@ -207,9 +207,9 @@ def load_reference_distribution():
 
     val_p75 = float(np.percentile(s_probs, 75))   # Moderate threshold
     val_p95 = float(np.percentile(s_probs, 95))   # High threshold
-    return f_cols, m_row, m_cols, s_probs, val_p75, val_p95
+    return f_cols, m_dict, m_cols, s_probs, val_p75, val_p95
 
-feature_cols, median_row, measured_cols, sorted_probs, p75, p95 = load_reference_distribution()
+feature_cols, median_dict, measured_cols, sorted_probs, p75, p95 = load_reference_distribution()
 
 def percentile_rank(score):
     return 100.0 * np.searchsorted(sorted_probs, score) / len(sorted_probs)
@@ -389,33 +389,33 @@ with mode_tab1:
         run_assessment = st.button("🔍 Assess Sepsis Risk, SHAP & Evidence", type="primary", use_container_width=True)
 
     if run_assessment:
-        row = median_row.copy()
-        row["HR"], row["MAP"], row["Resp"] = hr, map_val, resp
-        row["SBP"], row["Temp"], row["Age"] = sbp, temp, age
-        row["O2Sat"], row["Gender"] = o2sat, gender
-        row["ShockIndex"] = hr / max(sbp, 1)
-        row["ICULOS"] = iculos
+        row = dict(median_dict)
+        row["HR"], row["MAP"], row["Resp"] = float(hr), float(map_val), float(resp)
+        row["SBP"], row["Temp"], row["Age"] = float(sbp), float(temp), float(age)
+        row["O2Sat"], row["Gender"] = float(o2sat), float(gender)
+        row["ShockIndex"] = float(hr) / max(float(sbp), 1.0)
+        row["ICULOS"] = float(iculos)
 
         for name, val in [("HR", hr), ("MAP", map_val), ("Resp", resp),
                           ("Temp", temp), ("SBP", sbp), ("O2Sat", o2sat)]:
-            row[f"{name}_mean6"] = val
-            row[f"{name}_mean12"] = val
+            row[f"{name}_mean6"] = float(val)
+            row[f"{name}_mean12"] = float(val)
 
         for name, val in [("HR", 5.0), ("MAP", 5.0), ("Resp", 2.0),
                           ("Temp", 0.3), ("SBP", 5.0), ("O2Sat", 1.5)]:
-            row[f"{name}_std6"] = val
-            row[f"{name}_std12"] = val
+            row[f"{name}_std6"] = float(val)
+            row[f"{name}_std12"] = float(val)
 
         qsofa = int(resp >= 22) + int(sbp <= 100)
         sirs = int(hr > 90) + int(resp > 20) + int(temp > 38 or temp < 36)
         shock_index = row["ShockIndex"]
-        row["qSOFA"] = qsofa
-        row["SIRS"] = sirs
+        row["qSOFA"] = float(qsofa)
+        row["SIRS"] = float(sirs)
 
         for c in measured_cols:
-            row[c] = 1 if labs_ordered else 0
+            row[c] = 1.0 if labs_ordered else 0.0
 
-        X = row[feature_cols].values.reshape(1, -1)
+        X = np.array([[row[c] for c in feature_cols]], dtype=np.float32)
         risk = float(xgb_model.predict_proba(X)[0, 1])
         pct = percentile_rank(risk)
 
@@ -672,20 +672,20 @@ with mode_tab2:
         traj_df = custom_df
         patient_label = "Uploaded Patient Record"
 
-    # Compute hourly predictions
-    hourly_risks = []
+    # Compute hourly predictions in batch (fast, zero pandas dtype friction)
+    batch_rows = []
     for idx, r in traj_df.iterrows():
-        feat = median_row.copy()
-        feat["HR"] = r.get("HR", 80)
-        feat["MAP"] = r.get("MAP", 75)
-        feat["Resp"] = r.get("Resp", 18)
-        feat["SBP"] = r.get("SBP", 115)
-        feat["Temp"] = r.get("Temp", 37.0)
-        feat["O2Sat"] = r.get("O2Sat", 97)
-        feat["Age"] = r.get("Age", 60)
-        feat["Gender"] = r.get("Gender", 0)
-        feat["ICULOS"] = r.get("Hour", idx + 1)
-        feat["ShockIndex"] = feat["HR"] / max(feat["SBP"], 1)
+        feat = dict(median_dict)
+        feat["HR"] = float(r.get("HR", 80))
+        feat["MAP"] = float(r.get("MAP", 75))
+        feat["Resp"] = float(r.get("Resp", 18))
+        feat["SBP"] = float(r.get("SBP", 115))
+        feat["Temp"] = float(r.get("Temp", 37.0))
+        feat["O2Sat"] = float(r.get("O2Sat", 97))
+        feat["Age"] = float(r.get("Age", 60))
+        feat["Gender"] = float(r.get("Gender", 0))
+        feat["ICULOS"] = float(r.get("Hour", idx + 1))
+        feat["ShockIndex"] = feat["HR"] / max(feat["SBP"], 1.0)
 
         for name in ["HR", "MAP", "Resp", "Temp", "SBP", "O2Sat"]:
             feat[f"{name}_mean6"] = feat[name]
@@ -693,13 +693,13 @@ with mode_tab2:
             feat[f"{name}_std6"] = 5.0
             feat[f"{name}_std12"] = 5.0
 
-        feat["qSOFA"] = int(feat["Resp"] >= 22) + int(feat["SBP"] <= 100)
-        feat["SIRS"] = int(feat["HR"] > 90) + int(feat["Resp"] > 20) + int(feat["Temp"] > 38 or feat["Temp"] < 36)
+        feat["qSOFA"] = float(int(feat["Resp"] >= 22) + int(feat["SBP"] <= 100))
+        feat["SIRS"] = float(int(feat["HR"] > 90) + int(feat["Resp"] > 20) + int(feat["Temp"] > 38 or feat["Temp"] < 36))
 
-        vec = feat[feature_cols].values.reshape(1, -1)
-        prob = float(xgb_model.predict_proba(vec)[0, 1])
-        hourly_risks.append(prob * 100)
+        batch_rows.append([feat[c] for c in feature_cols])
 
+    X_batch = np.array(batch_rows, dtype=np.float32)
+    hourly_risks = (xgb_model.predict_proba(X_batch)[:, 1] * 100).tolist()
     traj_df["Sepsis Risk (%)"] = hourly_risks
 
     st.markdown(f"#### 📊 Trajectory: {patient_label}")
