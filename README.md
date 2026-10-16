@@ -3,7 +3,7 @@
 # 🩺 Explainable Sepsis Early-Warning & Clinical Decision Support System
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/Framework-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/Framework-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![XGBoost](https://img.shields.io/badge/Model-XGBoost-EB1436?style=for-the-badge)](https://xgboost.readthedocs.io/)
 [![Explainability](https://img.shields.io/badge/Explainability-TreeSHAP-black?style=for-the-badge)](https://shap.readthedocs.io/)
 [![RAG](https://img.shields.io/badge/Agentic%20RAG-FAISS%20+%20MiniLM-purple?style=for-the-badge)](https://github.com/facebookresearch/faiss)
@@ -53,3 +53,34 @@ Feature Pipeline (Rolling Vitals, qSOFA, SIRS, MICE Imputation)
                  │
                  ▼
 Streamlit Interactive Clinical Dashboard & SOAP Note Generator
+```
+
+🛠️ Tech Stack
+Machine Learning: XGBoost, Scikit-learn, PyTorch, TreeSHAP
+Vector Search & NLP: FAISS, Sentence-Transformers (all-MiniLM-L6-v2), Agentic RAG
+Data Engineering: Pandas, NumPy, MICE Multivariate Imputation
+Frontend & App: Streamlit, Matplotlib, Seaborn
+DevOps: Git, Docker, DevContainer
+🚀 Quickstart (Run Locally)
+1. Clone the repository
+bash
+git clone https://github.com/sahilbisla01/ai-sepsis-risk-detection.git
+cd ai-sepsis-risk-detection
+2. Set up virtual environment
+bash
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+pip install -r requirements.txt
+3. Run the Clinical App
+bash
+streamlit run app.py
+👨‍💻 Author
+Sahil Bisla
+
+B.Tech CSE (AI Specialization) @ Bennett University
+🔗 LinkedIn
+🐙 GitHub Profile
+✉️ sahilbisla16@gmail.com
