@@ -1,0 +1,5 @@
+[[rule]]
+include = ["**/*.toml"]
+
+[rule.schema]
+enabled = false
